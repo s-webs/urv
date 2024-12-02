@@ -1,26 +1,43 @@
 <script setup>
-import {ref} from 'vue';
-import {useForm} from '@inertiajs/vue3';
+import { ref } from 'vue';
+import axios from 'axios';
 
 const errorMessage = ref('');
 const successMessage = ref('');
 const mapLinkGoogle = ref('');
 const mapLinkYandex = ref('');
 
-const form = useForm({
-    latitude: null,
-    longitude: null,
-});
+const latitude = ref(null);
+const longitude = ref(null);
 
-const checkIn = () => {
+const checkIn = async () => {
     if ('geolocation' in navigator) {
         navigator.geolocation.getCurrentPosition(
-            (position) => {
-                form.latitude = position.coords.latitude;
-                form.longitude = position.coords.longitude;
-                console.log(form.latitude, form.longitude)
-                mapLinkGoogle.value = `https://www.google.com/maps?q=${form.latitude},${form.longitude}`;
-                mapLinkYandex.value = `https://yandex.ru/maps/?pt=${form.longitude},${form.latitude}&z=18&l=map`;
+            async (position) => {
+                latitude.value = position.coords.latitude;
+                longitude.value = position.coords.longitude;
+
+                console.log(latitude.value, longitude.value);
+
+                // Формируем ссылки с метками
+                mapLinkGoogle.value = `https://www.google.com/maps?q=${latitude.value},${longitude.value}`;
+                mapLinkYandex.value = `https://yandex.ru/maps/?pt=${longitude.value},${latitude.value}&z=18&l=map`;
+
+                // Отправляем данные на сервер через axios
+                try {
+                    const response = await axios.post('/attendance/check-in', {
+                        latitude: latitude.value,
+                        longitude: longitude.value,
+                    });
+
+                    successMessage.value = response.data.message || 'Приход успешно отмечен!';
+                    errorMessage.value = '';
+                } catch (error) {
+                    console.error('Ошибка при отметке прихода:', error);
+                    errorMessage.value =
+                        error.response?.data?.error || 'Ошибка при отметке прихода. Попробуйте снова.';
+                    successMessage.value = '';
+                }
             },
             (error) => {
                 console.error('Ошибка геолокации:', error);
@@ -33,9 +50,23 @@ const checkIn = () => {
         mapLinkYandex.value = '';
     }
 };
-
-
 </script>
+
+<template>
+    <div class="flex items-center justify-center h-screen bg-gradient-to-r from-cyan-500 to-blue-500">
+        <div>
+            <h2 class="text-2xl text-center font-bold text-white">Отметка прихода</h2>
+            <div class="mt-8 text-center">
+                <div class="text-center mt-8 text-gray-300 mb-4">Для отметки прихода мы проверим ваше местоположение.</div>
+                <div v-if="successMessage" class="text-green-700 text-center font-bold">{{ successMessage }}</div>
+                <div v-if="errorMessage" class="text-red-700 mt-4 font-bold">{{ errorMessage }}</div>
+            </div>
+            <div class="text-center">
+                <button class="bg-gradient-to-r border mt-8 from-indigo-400 to-cyan-400 text-white font-bold rounded-full p-4 mt-4" @click="checkIn">Отметить приход</button>
+            </div>
+        </div>
+    </div>
+</template>
 
 <style scoped>
 .error {
@@ -47,25 +78,4 @@ const checkIn = () => {
     color: green;
     margin-top: 10px;
 }
-</style>
-
-<template>
-    <div>
-        <h2>Отметка прихода</h2>
-        <p>Для отметки прихода мы проверим ваше местоположение.</p>
-        <button class="bg-green-600 p-4 mt-4" @click="checkIn">Отметить приход</button>
-
-        <p v-if="mapLinkGoogle" class="mt-4">
-            <span class="block">Google</span>
-            <a :href="mapLinkGoogle" target="_blank" class="text-blue-600 border">Открыть местоположение на карте</a>
-        </p>
-        <p v-if="mapLinkYandex" class="mt-4">
-            <span class="block">Yandex</span>
-            <a :href="mapLinkYandex" target="_blank" class="text-blue-600 border">Открыть местоположение на карте</a>
-        </p>
-    </div>
-</template>
-
-<style scoped>
-
 </style>

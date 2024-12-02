@@ -12,9 +12,13 @@ Route::middleware([
     config('jetstream.auth_session'),
     'verified',
 ])->group(function () {
-    Route::get('/dashboard', function () {
-        return Inertia::render('Dashboard');
-    })->name('dashboard');
+//    Route::get('/dashboard', function () {
+//        return Inertia::render('Dashboard');
+//    })->name('dashboard');
+    Route::get('/dashboard', [\App\Http\Controllers\AttendancesController::class, 'test'])->name('test');
+
+    Route::post('/attendance/check-in', [\App\Http\Controllers\AttendancesController::class, 'checkIn'])->name('attendance.check-in');
+
 
     Route::get('/check', [\App\Http\Controllers\CheckController::class, 'check'])->name('page.check');
 });
