@@ -18,11 +18,11 @@ const generateMapLink = (longitude, latitude) => {
                     <h1 class="text-2xl">Список отметок</h1>
                 </div>
                 <div class="mt-8">
-                    <div v-for="attendance in attendances" class="border rounded-lg p-4 flex justify-between">
-                        <div>{{ attendance.user.name }}</div>
-                        <div class="flex gap-4">
+                    <div v-for="attendance in attendances" class="border rounded-lg p-4 flex-col lg:flex-row lg:flex lg:justify-between">
+                        <div class="text-center">{{ attendance.user.name }}</div>
+                        <div class="flex items-center justify-center mt-8 lg:mt-0 flex-col sm:flex-row gap-4">
                             <div>{{ attendance.check_in_time }}</div>
-                            <div>
+                            <div class="">
                                 <a :href="generateMapLink(attendance.longitude, attendance.latitude)"
                                    class="bg-blue-700 hover:bg-blue-400 text-white rounded-lg py-2 px-4"
                                    target="_blank">
